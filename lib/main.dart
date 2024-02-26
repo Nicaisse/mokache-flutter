@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -70,16 +71,16 @@ class _GameState extends State<Game> {
   int L = 0;
   int chans = 0;
   List<String> listmo = [];
-  String asteriks = "";
-  String X = "Hello";
+  String X = "Hello".toLowerCase();
   List<String> mokache = [];
   String textinput = "";
+  List<String> guessedLetters = [];
   TextEditingController input = TextEditingController();
 
+  @override
   void initState() {
     super.initState();
     L = X.length;
-    asteriks = '*' * L;
     listmo = List.generate(L, (index) => "*");
     mokache = X.split('');
     chans = L;
@@ -100,22 +101,64 @@ class _GameState extends State<Game> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("${listmo.join(' ')}."),
+            Text("${listmo.join(' ')}"),
             Text("se yon mo yo itilize pou salye moun"),
             Container(
               width: 200,
               child: TextField(
-                keyboardType:TextInputType.text,
+                keyboardType: TextInputType.text,
                 controller: input,
                 decoration: InputDecoration(labelText: "taper ici"),
               ),
             ),
             OutlinedButton(
               onPressed: () {
-                mokachefonction();
-                input.clear();
+                if (input.text.length != L) {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('error'),
+                          content: Text(
+                              "il doit etre de la meme longueur que le mot cache"),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("OK"))
+                          ],
+                        );
+                      });
+                  input.clear();
+                  textinput = "";
+                  chans--;
+                } else {
+                  mokachefonction();
+                  input.clear();
+                  textinput = "";
+                }
               },
               child: Text("submit"),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 7,
+                children: List.generate(26, (index) {
+                  String klavye =
+                      String.fromCharCode('a'.codeUnitAt(0) + index);
+                  return Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onLetterPressed(klavye);
+                      },
+                      child: Text(klavye.toUpperCase()),
+                    ),
+                  );
+                }),
+              ),
             )
           ],
         ),
@@ -136,46 +179,28 @@ class _GameState extends State<Game> {
       }
       if (listmo.join() == X) {
         runGame();
-      } else if (chans==0) {
+      } else if (chans == 0) {
         lostgame();
       }
     });
   }
 
-  void runGame() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("You win"),
-            content: Text("Congratulations do you want to replay"),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const MyApp()),
-                    );
-                  },
-                  child: Text("Restart Game")),
-              // TextButton(
-              //   onPressed: () {
-              //     // Action pour quitter le jeu
-              //     SystemNavigator.pop();
-              //   },
-              //   child: Text("Quitter"),
-              // ),
-            ],
-          );
-        });
+  void onLetterPressed(String klavye) {
+    setState(() {
+      textinput += klavye; // Ajoute la lettre tapée au texte existant
+      input.text = textinput;
+      guessedLetters.add(klavye);
+      // Met à jour le texte du TextField
+    });
   }
 
-  void lostgame() {
+  void runGame() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("You Lost"),
-          content: Text("you lost! Do you want to replay?"),
+          title: Text("You win"),
+          content: Text("Congratulations! Do you want to replay?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -185,10 +210,44 @@ class _GameState extends State<Game> {
               },
               child: Text("Restart Game"),
             ),
+            TextButton(
+              onPressed: () {
+                // Action pour quitter le jeu
+              },
+              child: Text("Quitter"),
+            ),
           ],
         );
       },
     );
- 
+  }
+
+  void lostgame() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("You Lost"),
+          content: Text("You lost! Do you want to replay?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const MyApp()),
+                );
+              },
+              child: Text("Restart"),
+            ),
+            TextButton(
+              onPressed: () {
+                SystemNavigator.pop();
+               
+              },
+              child: Text("Exit Game"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
