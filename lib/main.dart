@@ -136,7 +136,7 @@ class _GameState extends State<Game> {
       }
       if (listmo.join() == X) {
         runGame();
-      } else if (listmo.join().contains("*")) {
+      } else if (chans==0) {
         lostgame();
       }
     });
@@ -169,5 +169,26 @@ class _GameState extends State<Game> {
         });
   }
 
-  void lostgame() {}
+  void lostgame() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("You Lost"),
+          content: Text("you lost! Do you want to replay?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const MyApp()),
+                );
+              },
+              child: Text("Restart Game"),
+            ),
+          ],
+        );
+      },
+    );
+ 
+  }
 }
