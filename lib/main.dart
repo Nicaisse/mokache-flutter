@@ -40,7 +40,7 @@ class Gamescreen extends StatelessWidget {
               ),
               child: const Text(
                 'Description du jeu :\n\n'
-                "Le game du 'MOT CACHE' consiste à deviner un mot en proposant des lettres. Chaque lettre correcte est révélée dans le mot, sinon le joueur perd des vies. L'objectif est de deviner le mot complet avant d'épuiser toutes les vies",
+                "Le jeu du 'MOT CACHE' consiste à deviner un mot en proposant des lettres. Chaque lettre correcte est révélée dans le mot, sinon le joueur perd des vies. L'objectif est de deviner le mot complet avant d'épuiser toutes les vies",
                 style: TextStyle(fontSize: 16),
               ),
             ),
@@ -108,38 +108,14 @@ class _GameState extends State<Game> {
               child: TextField(
                 keyboardType: TextInputType.text,
                 controller: input,
+                onChanged: (value) {
+                  // Callback for each letter typed
+                  if (value.length == 1) {
+                    onLetterPressed(value);
+                  }
+                },
                 decoration: InputDecoration(labelText: "taper ici"),
               ),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                if (input.text.length != L) {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('error'),
-                          content: Text(
-                              "il doit etre de la meme longueur que le mot cache"),
-                          actions: [
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text("OK"))
-                          ],
-                        );
-                      });
-                  input.clear();
-                  textinput = "";
-                  chans--;
-                } else {
-                  mokachefonction();
-                  input.clear();
-                  textinput = "";
-                }
-              },
-              child: Text("submit"),
             ),
             SizedBox(height: 20),
             Expanded(
@@ -168,29 +144,35 @@ class _GameState extends State<Game> {
 
   void mokachefonction() {
     setState(() {
-      chans--;
       textinput = input.text;
+      bool revealed = false;
+
       for (int i = 0; i < L; i++) {
-        if (textinput[i] == X[i]) {
+        if (textinput == X[i]) {
           listmo[i] = X[i];
-        } else {
-          listmo[i] = "*";
+          revealed = true;
         }
       }
+
+      if (!revealed) {
+        chans--;
+        if (chans == 0) {
+          lostgame();
+        }
+      }
+
       if (listmo.join() == X) {
         runGame();
-      } else if (chans == 0) {
-        lostgame();
       }
     });
   }
 
   void onLetterPressed(String klavye) {
     setState(() {
-      textinput += klavye; // Ajoute la lettre tapée au texte existant
+      textinput = klavye.toLowerCase();
       input.text = textinput;
       guessedLetters.add(klavye);
-      // Met à jour le texte du TextField
+      mokachefonction();
     });
   }
 
@@ -199,8 +181,8 @@ class _GameState extends State<Game> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("You win"),
-          content: Text("Congratulations! Do you want to replay?"),
+          title: Text("ou genyen!"),
+          content: Text("Congratulations mo an se te :$X!. \n\n ou vle rejwe?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -212,7 +194,7 @@ class _GameState extends State<Game> {
             ),
             TextButton(
               onPressed: () {
-                // Action pour quitter le jeu
+                SystemNavigator.pop();
               },
               child: Text("Quitter"),
             ),
@@ -227,8 +209,8 @@ class _GameState extends State<Game> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("You Lost"),
-          content: Text("You lost! Do you want to replay?"),
+          title: Text("ou pedi!"),
+          content: Text("dezole! ou vle rejwe?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -241,7 +223,6 @@ class _GameState extends State<Game> {
             TextButton(
               onPressed: () {
                 SystemNavigator.pop();
-               
               },
               child: Text("Exit Game"),
             ),
